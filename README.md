@@ -1,140 +1,182 @@
-# MySay — Photo-Grounded Speech Board for Counter Interactions
+# MySay
 
-> An accessible communication board for shop counters that turns real photos of store shelves into selectable vocabulary, natural phrases, and clear spoken speech.
+> **Your surroundings. Your words.**
 
----
+[![Watch Demo](https://img.shields.io/badge/Demo-Watch%20Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=uSxT3vcG7rw)
 
-## 1. Problem Statement
-
-People who find speaking difficult (including non-speaking individuals, people with aphasia, speech apraxia, dysarthria, or traumatic brain injury) can encounter communication friction during everyday neighborhood transactions:
-- **Pre-configured AAC boards** often do not include the specific brand, package variation, or local item found on a particular neighborhood counter.
-- **Typing out descriptions** on a phone keyboard during a fast-moving checkout interaction can be slow or tiring.
-- **Gesturing and pointing** across a counter or glass display can be ambiguous.
-
-**MySay** addresses this dynamic, scene-specific communication problem by grounding communication directly in the visual scene right in front of the customer.
+**Video Demonstration:** [https://www.youtube.com/watch?v=uSxT3vcG7rw](https://www.youtube.com/watch?v=uSxT3vcG7rw)
 
 ---
 
-## 2. Working Workflow & Features
+## Problem & Solution
 
-MySay implements a complete, five-step interaction designed for rapid, error-tolerant shop-counter communication:
+### The Problem
+People who find speaking difficult—including non-speaking individuals, people with aphasia, speech apraxia, or dysarthria—often encounter communication barriers at neighborhood store counters:
+- **Static AAC boards** cannot anticipate the specific brands, packaging variations, or local items present in every neighborhood shop.
+- **Typing descriptions** on a phone keyboard during a fast-moving checkout interaction is slow and tiring.
+- **Pointing across a counter** or through glass displays is frequently ambiguous.
 
-1. **Scene Capture**: The user takes a live camera photo or uploads a photo of items on the store shelf/counter (or loads an instant sample shelf for testing).
-2. **Visual Vocabulary Extraction**: The app sends the photo to the server, where Gemma Vision extracts up to four clearly visible products with coordinates, returning normalized bounding boxes and bilingual labels (English and Telugu). The browser crops the products client-side using the native HTML5 Canvas API.
-3. **Intent & Quantity Selection**: The user taps a visible product card, chooses an intention (*"Ask the price"* or *"I want this"*), and picks a quantity (1, 2, or 3). The active choice is immediately summarized with high-contrast visual cues.
-4. **Message Review & Deliberate Speech**:
-   - The user reviews the composed natural sentence in large, editable high-contrast text. If the composition API is unreachable, local deterministic templates provide structured fallback phrases. (Note: Fallback applies strictly to sentence composition; visual product recognition from photos still requires the hosted Gemma Vision API.)
-   - A visual pointing card highlights the selected item crop so the user can physically point to it.
-   - **Nothing speaks automatically**: Speech is triggered strictly when the user explicitly presses **Speak Message**.
-   - **Stop** and **Repeat** buttons are always accessible.
-5. **Misunderstanding Correction & Quick Replies**:
-   - If the clerk misunderstands or grabs the wrong item, the user taps **"No, a different item"** (entering correction mode and referencing the replacement item) or **"Only one"**.
-   - Instant quick replies (**"Yes"**, **"No"**, **"Thank you"**) are always available and safely cancel in-flight model requests without overwriting user intent.
-
----
-
-## 3. Why Gemma is Useful
-
-Open-vocabulary shop encounters cannot be solved by static communication pictograms because store inventories change constantly. Gemma (`gemma-4-26b-a4b-it`) serves two critical roles:
-1. **Unfamiliar Scene to Selectable Vocabulary**: Gemma's multimodal vision identifies items directly from cluttered shop counter photos and outputs localized bounding boxes, turning an unfamiliar visual environment into a custom, tactile communication board in seconds.
-2. **Intent Grounding & Sentence Composition**: Rather than forcing the user to assemble words manually, Gemma converts structured, explicit choices (Item + Intention + Quantity + Correction context) into polite, natural spoken phrases in the selected language (English or Telugu).
-
-*Note on Configuration:* Gemma is configured with `thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL }` via the `@google/genai` SDK, which reduces inference latency significantly compared to unconstrained chain-of-thought generation while preserving robust item detection and bounding box coordinates.
+### The Solution
+**MySay** grounds communication directly in the user's immediate physical surroundings:
+1. The user photographs the shop shelf or counter display.
+2. Gemma Vision detects visible items and generates an interactive, tactile communication board.
+3. The user selects a product, intention ("Ask the price" or "I want this"), and quantity.
+4. The user reviews an editable sentence and explicitly taps **Speak Message** to speak aloud in English or Telugu.
+5. If the shopkeeper misunderstands, dedicated correction controls ("Different item", "Only one") and instant replies ("Yes", "No", "Thank you") resolve the interaction quickly.
 
 ---
 
-## 4. Technology Stack & Configuration
+## Main Features
 
-- **Frontend & App Framework**: [Next.js](https://nextjs.org/) 16 (App Router), React 19, TypeScript
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with accessible high-contrast colors and large touch targets ($\ge 48\text{px}$ to $60\text{px}$)
-- **AI Vision & Composition**: `@google/genai` SDK running exclusively on the Node.js server runtime
-- **Model Identifier**: `gemma-4-26b-a4b-it`
-- **Speech Engine**: Native Browser `window.speechSynthesis` (Web Speech API)
-- **Image Processing**: Client-side canvas resizing and bounding box cropping (zero client API key exposure)
-- **Icons**: [Lucide React](https://lucide.dev/)
+| Feature | Description | Accessibility & Safeguard |
+| :--- | :--- | :--- |
+| **Scene-Grounded Vocabulary** | Detects up to 4 clearly visible products from a shelf photo with localized bounding boxes. | Turns an unfamiliar store display into an interactive touch board in seconds. |
+| **Client-Side Canvas Cropping** | Crops product photos directly in the browser via HTML5 Canvas using normalized coordinates. | Zero image storage on disk; keeps API keys and raw storage strictly server-side. |
+| **Intent & Quantity Selection** | Structured controls to ask prices or state purchase intent for 1, 2, or 3 items. | High-contrast visual cards make current selections obvious before speaking. |
+| **Zero Autonomous Speech** | Generates editable natural text but never speaks automatically. | Speech triggers exclusively on deliberate user tap of **Speak Message**. |
+| **Composition Template Fallback** | Deterministic local templates compose phrases if the model API is unreachable. | Speech generation never halts if the network drops (vision recognition still requires hosted API). |
+| **Rapid Misunderstanding Corrections** | Dedicated "Different item" and "Only one" buttons update the phrase in context. | Quickly resolves counter misunderstandings without restarting the workflow. |
+| **Instant Quick Replies** | One-tap "Yes", "No", and "Thank you" responses. | Immediately aborts in-flight API requests to prevent late responses from overwriting user intent. |
+| **Bilingual Interface (EN / TE)** | Full support for English and Telugu labels and speech. | Native Telugu script rendering; browser voice availability checks prevent garbled accents. |
 
-### Environment Variables
+---
+
+## How Gemma Powers MySay
+
+MySay uses Google's **Gemma 4** (`gemma-4-26b-a4b-it`) via the server-side `@google/genai` SDK:
+
+1. **Multimodal Visual Recognition (`/api/analyze`)**:
+   - Analyzes cluttered retail scenes and detects up to 4 prominent items.
+   - Returns normalized bounding boxes (`{ x, y, width, height }` from `0` to `1`) and bilingual labels (English and Telugu).
+   - Validated against a strict Zod schema with automatic array-root normalization to ensure reliable downstream client cropping.
+   - Built-in server retry loop with backoff handles transient API overload spikes seamlessly.
+
+2. **Contextual Phrase Composition (`/api/compose`)**:
+   - Converts structured selections (product label, intention, quantity, language, and prior correction context) into natural, polite conversational sentences.
+   - If the composition API is unavailable, the server automatically falls back to deterministic local phrase templates.
+
+3. **Performance Optimization (`ThinkingLevel.MINIMAL`)**:
+   - Configured with `thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL }` to reduce inference latency, delivering predictable response times suitable for counter checkout interactions.
+
+> **Architecture Note**: Message composition includes deterministic local template fallback if the model API is unreachable. Visual product recognition from photos requires the hosted Gemma Vision API.
+
+---
+
+## Project Directory Structure
+
+```
+mysay/
+├── .env.example              # Template environment variables for Gemini API & Gemma model
+├── LICENSE                   # MIT license terms and third-party attribution notices
+├── SKILL.md                  # Agent workflow specification for scene-to-communication boards
+├── package.json              # Project dependencies, scripts, and test runner configuration
+├── public/                   # Static icons and presentation assets
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── analyze/      # POST /api/analyze: Gemma vision recognition & bounding boxes
+│   │   │   └── compose/      # POST /api/compose: Gemma phrase composition with local fallback
+│   │   ├── globals.css       # Tailwind CSS theme setup and global typography styles
+│   │   ├── layout.tsx        # Root HTML layout and viewport metadata
+│   │   └── page.tsx          # Main application page orchestrating surroundings and words panels
+│   ├── components/
+│   │   ├── Header.tsx        # Top navigation header with language switcher (English / Telugu)
+│   │   ├── ImageCapture.tsx  # Camera capture, file upload, synthetic test shelf, and retry alert
+│   │   ├── ProductCard.tsx   # Product card displaying client-cropped image and bilingual labels
+│   │   ├── ProductGrid.tsx   # 2x2 grid displaying detected product cards
+│   │   └── WordsPanel.tsx    # Communication panel: intention, quantity, speech, and corrections
+│   └── lib/
+│       ├── imageUtils.ts     # Client canvas resizing (1280px max) and bounding-box cropping
+│       ├── sampleImage.ts    # Synthetic shop shelf generator for unit and pipeline testing
+│       ├── speech.ts         # Web Speech API wrapper with voice detection & Telugu checks
+│       ├── templates.ts      # Deterministic local phrase templates and quick reply phrases
+│       ├── types.ts          # TypeScript interfaces for products, boxes, intentions, and APIs
+│       └── server/
+│           └── gemini.ts     # Server-side @google/genai client, schemas, retries, and normalization
+└── tests/
+    └── normalization.test.ts # Unit tests for response normalization and schema validation
+```
+
+---
+
+## Local Setup & Environment Variables
+
+### Prerequisites
+- Node.js 20+ (tested on Node.js v24)
+- npm
+
+### 1. Environment Configuration
 
 If `.env.local` does not already exist, copy `.env.example`:
 
 ```bash
-# Only copy if .env.local does not already exist (do not overwrite existing configuration):
 if [ ! -f .env.local ]; then cp .env.example .env.local; fi
 ```
 
-Then edit `.env.local` to configure your server-side variables:
+Configure your server-side variables in `.env.local`:
 
 ```env
 # Google Gemini / Gemma API Key (Server-side only)
-GEMINI_API_KEY=your_actual_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 
-# Model identifier
+# Model identifier for Gemma on Gemini API
 GEMMA_MODEL=gemma-4-26b-a4b-it
 ```
 
-> **Warning**: Do not overwrite or delete an existing `.env.local` that already contains your configured key.
+> **Important**: Never commit `.env.local`. It is excluded by `.gitignore`.
 
-### Local Setup & Run
+### 2. Install & Run
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 npm install
 
-# 2. Run local development server
+# Start local development server
 npm run dev
+```
 
-# 3. Build for production
+Open [http://localhost:3000](http://localhost:3000) (or the port reported in your terminal) to use the app.
+
+---
+
+## Verification Commands
+
+Run the test suite, linting, type-checking, and production build with the following commands:
+
+```bash
+# Run unit tests (response normalization & schema validation)
+npm test
+
+# Run code style & lint checks
+npm run lint
+
+# Run strict TypeScript compiler verification
+npx tsc --noEmit
+
+# Run production build (webpack target)
 npm run build
 
-# 4. Start production server
+# Start production server
 npm run start
 ```
 
-### Image Testing & Verification Provenance
+---
 
-- **Synthetic Test Benchmarks**: The in-app "Load Sample Shop Shelf" feature and synthetic test images were created during development for predictable unit latency benchmarking and pipeline verification without requiring physical camera access.
-- **Real-Photo Manual Verification**: The user manually tested and confirmed that the real-photo flow and speech worked end-to-end (confirming product recognition, client-side Canvas cropping, and voice synthesis). Note: Camera capture and file upload were not independently verified as separate paths. Recognition accuracy depends on lighting, packaging, and clarity; it is not claimed to be guaranteed for arbitrary scenes.
+## Limitations
 
-### Deployment & Hosting Configuration (Vercel Fluid Compute)
-
-- **Serverless Timeout Accommodation**: Route handlers (`/api/analyze` and `/api/compose`) export `maxDuration = 120`.
-- **Vercel Fluid Compute Required**: Deploying to Vercel requires enabling **Fluid Compute** (in Project Settings &rarr; Functions) to allow execution durations up to 120 seconds. This ensures serverless functions accommodate the application's bounded 90-second timeout ceiling for Gemma vision inference without encountering platform 504 Gateway Timeout errors.
-- **Required Server-Side Environment Variables**:
-  - `GEMINI_API_KEY`: Server-side API key for `@google/genai`.
-  - `GEMMA_MODEL`: `gemma-4-26b-a4b-it`.
+- **Visual Recognition Conditions**: Recognition accuracy depends on ambient lighting, angle, and packaging clarity. Reflective surfaces or heavy clutter can produce approximate bounding boxes.
+- **Hosted API Dependency for Recognition**: While sentence composition includes an offline template fallback, visual item detection from photos requires an active network connection to the hosted Gemma Vision API.
+- **Telugu Speech Engine Dependency**: Spoken audio relies on the browser's native `window.speechSynthesis`. Voice quality varies by operating system. If the host platform lacks an installed Telugu voice, the app suppresses foreign-accented speech and alerts the user to show the high-contrast on-screen text to the shopkeeper instead.
+- **Early Prototype**: MySay is an early functional prototype developed for hackathon demonstration. It has not yet undergone formal clinical usability trials with individuals with speech disabilities.
 
 ---
 
-## 5. Hosted API Processing & Data Handling
+## License & Credits
 
-- **Application-Level Privacy**: MySay does not maintain any persistent database, user accounts, cookies, session trackers, or server-side disk storage. Uploaded photos and audio transcripts are processed in-memory during the active HTTP request and discarded immediately after response generation.
-- **Provider-Level Transmission**: Image data and prompt strings are transmitted over HTTPS to Google's hosted Gemini API endpoints using the official `@google/genai` SDK. Processing adheres to standard Google Gemini API terms and operational lifecycles; MySay makes no independent claims regarding upstream model provider log retention.
-
----
-
-## 6. Known Limitations
-
-This project is an early hackathon functional prototype. Transparent limitations include:
-- **Recognition & Crop Accuracy**: Cluttered backgrounds, reflective packaging, extreme angles, or poor lighting can cause Gemma to mislabel items or produce approximate bounding boxes that clip parts of a product.
-- **Hosted API Dependency for Recognition**: While message composition includes an offline deterministic template fallback if the model API is unavailable, visual product recognition from photos requires an active network connection to the hosted Gemma Vision API.
-- **Device-Dependent Speech Synthesis**: Speech synthesis relies on the local browser's Web Speech API. Voices can sound robotic or mechanical depending on the OS. On platforms lacking a native Telugu voice, the app displays a clear warning banner and relies on high-contrast screen text rather than falling back to an unintelligible English accent.
-- **Latency**: Vision processing over cellular connections may take 5–15 seconds depending on network conditions. A visible elapsed-time indicator and Cancel button keep the user informed.
-- **No Direct User Testing Yet**: While designed with accessibility considerations in mind (large touch targets, confirmation before speech, high contrast), this prototype has not yet undergone formal usability studies or clinical trials with individuals who have speech disabilities.
-
----
-
-## 7. Inspiration & Origin
-
-MySay was inspired by the [3VA](https://github.com/libreearth/eva_voice_release) project's pictogram communication approach for augmentative communication. 
-
-While 3VA focuses on pictogram symbol grids, MySay explores a photo-grounded paradigm: dynamically generating a temporary, custom communication board directly from a live photograph of the user's immediate physical environment, combined with explicit confirmation and counter-specific misunderstanding correction flows.
-
----
-
-## 8. Reused Assets & Attribution
-
-- **Next.js & React**: Licensed under the MIT License &copy; Vercel, Inc. and Meta Platforms, Inc.
-- **Tailwind CSS**: Licensed under the MIT License &copy; Tailwind Labs, Inc.
-- **Lucide Icons**: Licensed under the ISC License &copy; Lucide Contributors.
-- **Google Gen AI SDK (`@google/genai`)**: Licensed under the Apache-2.0 License &copy; Google LLC.
-- **Original MySay Application Code**: Licensed under the MIT License (see [LICENSE](./LICENSE)).
+- **Application Code**: Licensed under the [MIT License](./LICENSE).
+- **Concept Credit**: Inspired by the [3VA](https://github.com/libreearth/eva_voice_release) augmentative communication project concept.
+- **Third-Party Notices**:
+  - [Next.js](https://nextjs.org/) & [React](https://react.dev/): MIT License &copy; Vercel, Inc. and Meta Platforms, Inc.
+  - [Tailwind CSS](https://tailwindcss.com/): MIT License &copy; Tailwind Labs, Inc.
+  - [Lucide Icons](https://lucide.dev/): ISC License &copy; Lucide Contributors.
+  - [Google Gen AI SDK](https://github.com/google-gemini/deprecations): Apache-2.0 License &copy; Google LLC.
