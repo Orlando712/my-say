@@ -4,9 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { ImageCapture } from "@/components/ImageCapture";
 import { ProductGrid } from "@/components/ProductGrid";
-import { SelectionControls } from "@/components/SelectionControls";
-import { MessageDisplay } from "@/components/MessageDisplay";
-import { CorrectionBar } from "@/components/CorrectionBar";
+import { WordsPanel } from "@/components/WordsPanel";
 import {
   DetectedProduct,
   IntentionType,
@@ -27,7 +25,6 @@ import {
   getAvailableVoices,
 } from "@/lib/speech";
 import { buildLocalTemplateMessage } from "@/lib/templates";
-import { Image as ImageIcon } from "lucide-react";
 
 export default function Home() {
   // Application State
@@ -53,9 +50,6 @@ export default function Home() {
   const [isBuilding, setIsBuilding] = useState<boolean>(false);
   const [isStale, setIsStale] = useState<boolean>(false);
   const [isFallback, setIsFallback] = useState<boolean>(false);
-  const [fallbackReason, setFallbackReason] = useState<string | undefined>(
-    undefined
-  );
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [speechUnavailableReason, setSpeechUnavailableReason] = useState<
     string | null
@@ -341,7 +335,6 @@ export default function Home() {
 
         setMessage(data.text);
         setIsFallback(Boolean(data.isFallback));
-        setFallbackReason(data.fallbackReason);
         setIsStale(false);
       } catch (err: unknown) {
         if (currentReqId !== composeReqIdRef.current) return;
@@ -349,10 +342,8 @@ export default function Home() {
           return; // Aborted by quick reply or new selection
         }
         const fallbackText = buildLocalTemplateMessage(payload);
-        const msg = err instanceof Error ? err.message : String(err);
         setMessage(fallbackText);
         setIsFallback(true);
-        setFallbackReason(`Network error (${msg}) - Deterministic template loaded`);
         setIsStale(false);
       } finally {
         if (currentReqId === composeReqIdRef.current) {
@@ -383,6 +374,23 @@ export default function Home() {
       }
       setSelectedProduct(product);
       setIsStale(true);
+    }
+
+    // On mobile, gently bring communication panel into view if below the viewport
+    if (typeof window !== "undefined") {
+      const panel = document.getElementById("communication-panel-anchor");
+      if (panel) {
+        const rect = panel.getBoundingClientRect();
+        if (rect.top > window.innerHeight - 120) {
+          const prefersReducedMotion = window.matchMedia(
+            "(prefers-reduced-motion: reduce)"
+          ).matches;
+          panel.scrollIntoView({
+            behavior: prefersReducedMotion ? "auto" : "smooth",
+            block: "start",
+          });
+        }
+      }
     }
   };
 
@@ -426,9 +434,17 @@ export default function Home() {
       setPreviousProduct(selectedProduct);
     }
     // Scroll smoothly to product grid
-    const el = document.getElementById("product-selection-anchor");
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth" });
+    if (typeof window !== "undefined") {
+      const el = document.getElementById("product-selection-anchor");
+      if (el) {
+        const prefersReducedMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)"
+        ).matches;
+        el.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "start",
+        });
+      }
     }
   };
 
@@ -458,7 +474,6 @@ export default function Home() {
     setMessage(phrase);
     setIsStale(false);
     setIsFallback(false);
-    setFallbackReason(undefined);
   };
 
   // Speech actions (User Gesture only)
@@ -489,44 +504,37 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f6f2] text-stone-900 antialiased">
+    <div className="min-h-screen bg-[#F6F4EE] text-[#202923] antialiased">
       {/* Top Navigation */}
       <Header
         language={language}
         onLanguageChange={handleLanguageChange}
-        modelUsed="gemma-4-26b-a4b-it"
       />
 
-      {/* Main Workspace Layout */}
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
-        {/* Sample Scene Quick Loader Bar (helps direct evaluation without hunting for shelf photos) */}
-        {!image && (
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-stone-200 bg-white p-3.5 shadow-xs">
-            <div className="flex items-center gap-2.5 text-xs text-stone-700">
-              <ImageIcon className="h-4 w-4 text-[#0f4c5c]" />
-              <span>
-                Want to test immediately? Load our synthetic shop shelf scene:
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleLoadSample}
-              className="min-h-[44px] rounded-lg border border-[#0f4c5c] bg-teal-50 px-3.5 py-1.5 text-xs font-bold text-[#0f4c5c] transition hover:bg-teal-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0f4c5c]"
-            >
-              Load Sample Shop Shelf
-            </button>
-          </div>
-        )}
-
+      {/* Main Workspace Layout (55/45 split, max 1200px) */}
+      <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 sm:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Left Column: Visual Scene & Product Grounding */}
-          <div className="space-y-6 lg:col-span-7">
-            {/* 1. Shop Photo Capture & Preview */}
+          {/* Left Surface: Your Surroundings (Photo + Items in one cohesive panel) */}
+          <section
+            aria-label="Your surroundings"
+            className="rounded-3xl border border-[#E2DDD5] bg-white p-5 sm:p-6 shadow-xs space-y-4 lg:col-span-7"
+          >
+            <div className="border-b border-[#E2DDD5] pb-3">
+              <h2 className="text-xl font-bold tracking-tight text-[#202923]">
+                Your surroundings
+              </h2>
+              <p className="text-xs text-[#58625B]">
+                Photograph your environment to find items to talk about
+              </p>
+            </div>
+
+            {/* Photo Capture & Preview Area */}
             <ImageCapture
               image={image}
               onImageSelected={handleImageFile}
               onFindItems={handleFindItems}
               onClearImage={handleClearImage}
+              onLoadSample={handleLoadSample}
               isAnalyzing={isAnalyzing}
               elapsedSeconds={analyzeElapsedSeconds}
               onCancelAnalysis={handleCancelAnalysis}
@@ -534,10 +542,10 @@ export default function Home() {
               errorCode={analyzeErrorCode}
             />
 
-            {/* Anchor for returning from "No, a different item" */}
+            {/* Anchor for returning from "Different item" */}
             <div id="product-selection-anchor" />
 
-            {/* 2. Detected Products Grid */}
+            {/* Detected Products Grid */}
             <ProductGrid
               products={products}
               selectedProduct={selectedProduct}
@@ -546,12 +554,15 @@ export default function Home() {
               language={language}
               explanation={explanation}
             />
-          </div>
+          </section>
 
-          {/* Right Column: Communication Composer & Speech Board */}
-          <div className="space-y-6 lg:col-span-5">
-            {/* 3. Intention & Quantity */}
-            <SelectionControls
+          {/* Right Surface: Your Words (One coherent communication panel) */}
+          <section
+            id="communication-panel-anchor"
+            aria-label="Your words"
+            className="rounded-3xl border border-[#E2DDD5] bg-white p-5 sm:p-6 shadow-xs lg:col-span-5"
+          >
+            <WordsPanel
               selectedProduct={selectedProduct}
               intention={intention}
               onIntentionChange={handleIntentionChange}
@@ -559,52 +570,37 @@ export default function Home() {
               onQuantityChange={handleQuantityChange}
               onBuildMessage={() => handleBuildMessage()}
               isBuilding={isBuilding}
-              language={language}
               isStale={isStale}
-            />
-
-            {/* 4. Large Message Preview & Speech Controls */}
-            <MessageDisplay
               message={message}
               onMessageChange={(text) => {
                 setMessage(text);
                 setIsStale(false);
               }}
-              selectedProduct={selectedProduct}
-              fullImageDataUrl={image?.dataUrl}
-              language={language}
-              isBuilding={isBuilding}
               isSpeaking={isSpeaking}
               onSpeak={handleSpeak}
               onStop={handleStop}
               onRepeat={handleRepeat}
               isFallback={isFallback}
-              fallbackReason={fallbackReason}
               speechUnavailableReason={speechUnavailableReason}
-              isStale={isStale}
-            />
-
-            {/* 5. Corrections & Quick Replies */}
-            <CorrectionBar
               onDifferentItem={handleDifferentItem}
               onOnlyOne={handleOnlyOne}
+              isCorrectionMode={isCorrectionMode}
               onQuickReply={handleQuickReply}
               language={language}
-              isCorrectionMode={isCorrectionMode}
-              hasSelectedProduct={Boolean(selectedProduct)}
+              fullImageDataUrl={image?.dataUrl}
             />
-          </div>
+          </section>
         </div>
       </main>
 
       {/* Accessible Footer - Technical Details Outside Communication Flow */}
-      <footer className="mt-12 border-t border-stone-300 bg-white py-6 text-center text-xs text-stone-500">
-        <div className="mx-auto max-w-7xl px-4 space-y-1">
-          <p className="font-medium text-stone-600">
-            MySay &bull; Photo-Grounded Speech Board for Counter Interactions
+      <footer className="mt-12 border-t border-[#E2DDD5] bg-white py-6 text-center text-xs text-[#58625B]">
+        <div className="mx-auto max-w-[1200px] px-4 space-y-1">
+          <p className="font-semibold text-[#202923]">
+            MySay &bull; Your surroundings. Your words.
           </p>
-          <p className="text-[11px] text-stone-400">
-            AI Vision: <code className="rounded bg-stone-100 px-1 py-0.5 font-mono text-stone-600">gemma-4-26b-a4b-it</code> (ThinkingLevel.MINIMAL) &bull; Voice: Browser Web Speech API &bull; Ephemeral processing only
+          <p className="text-[11px] text-[#58625B]">
+            Vision: <code className="rounded bg-[#FAF9F5] border border-[#E2DDD5] px-1 py-0.5 font-mono text-[#202923]">gemma-4-26b-a4b-it</code> (ThinkingLevel.MINIMAL) &bull; Voice: Browser Web Speech API &bull; Ephemeral processing only
           </p>
         </div>
       </footer>

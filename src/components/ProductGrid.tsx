@@ -1,7 +1,7 @@
 import React from "react";
 import { DetectedProduct, SupportedLanguage } from "@/lib/types";
 import { ProductCard } from "./ProductCard";
-import { ShoppingBag, Info } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface ProductGridProps {
   products: DetectedProduct[];
@@ -22,46 +22,37 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (products.length === 0) {
     return (
-      <section
-        aria-label="Detected Products"
-        className="rounded-xl border border-stone-300 bg-white p-5 text-center shadow-xs"
-      >
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-stone-100 text-stone-500">
-          <ShoppingBag className="h-6 w-6" />
-        </div>
-        <h2 className="mt-3 text-base font-bold text-stone-900">
-          2. Selectable Shop Items
-        </h2>
-        <p className="mt-1 text-sm text-stone-600">
-          Take a photo of a shelf or counter display, then press &ldquo;Find items&rdquo; to detect products.
-        </p>
-
-        {explanation && (
-          <div className="mt-4 flex items-start gap-2 rounded-lg bg-stone-50 p-3 text-left text-xs text-stone-700">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#0f4c5c]" />
+      <div className="pt-2">
+        {explanation ? (
+          <div className="flex items-start gap-2.5 rounded-xl border border-[#E2DDD5] bg-[#FAF9F5] p-3 text-xs text-[#58625B]">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#174C43]" />
             <div>
-              <span className="font-semibold">Scene note:</span> {explanation}
+              <span className="font-semibold text-[#202923]">Scene note:</span> {explanation}
             </div>
           </div>
+        ) : (
+          <div className="rounded-xl border border-dashed border-[#E2DDD5] bg-[#FAF9F5] p-3 text-center text-xs text-[#58625B]">
+            Choose or take a photo above, then tap &ldquo;Scan photo&rdquo; to detect items.
+          </div>
         )}
-      </section>
+      </div>
     );
   }
 
   return (
-    <section
-      aria-label="Detected Products"
-      className="rounded-xl border border-stone-300 bg-white p-4 shadow-xs sm:p-5"
-    >
-      <div className="mb-3 flex items-center justify-between">
+    <div className="space-y-3 pt-2">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-bold text-stone-900">
-            2. Choose Product ({products.length} found)
-          </h2>
-          <p className="text-xs text-stone-600">
-            Tap the item you want to ask about or buy
+          <h3 className="text-base font-bold text-[#202923]">
+            Choose an item
+          </h3>
+          <p className="text-xs text-[#58625B]">
+            Tap the item you want to speak about
           </p>
         </div>
+        <span className="rounded-full bg-[#EBF2EE] px-2.5 py-0.5 text-xs font-bold text-[#174C43]">
+          {products.length} found
+        </span>
       </div>
 
       <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -76,6 +67,6 @@ export function ProductGrid({
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }
