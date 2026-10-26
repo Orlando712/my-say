@@ -130,32 +130,74 @@ Return ONLY valid JSON matching this schema:
 {"items":[{"id":"item_1","labelEn":"string","labelTe":"string","box":{"x":number,"y":number,"width":number,"height":number}}]}`;
 
   try {
-    const callPromise = ai.models.generateContent({
-      model: modelName,
-      contents: [
-        { text: prompt },
-        {
-          inlineData: {
-            mimeType,
-            data: base64Data,
+    const MAX_RETRIES = 2; // Up to 2 retries (3 attempts total) on transient errors
+    const TOTAL_TIMEOUT_MS = 90000;
+    const startTime = Date.now();
+    let response: Awaited<ReturnType<typeof ai.models.generateContent>> | null = null;
+
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const remainingTime = TOTAL_TIMEOUT_MS - (Date.now() - startTime);
+      if (remainingTime <= 5000) {
+        throw new Error("Request timed out after 90 seconds");
+      }
+
+      try {
+        const callPromise = ai.models.generateContent({
+          model: modelName,
+          contents: [
+            { text: prompt },
+            {
+              inlineData: {
+                mimeType,
+                data: base64Data,
+              },
+            },
+          ],
+          config: {
+            responseMimeType: "application/json",
+            temperature: 0.1,
+            thinkingConfig: {
+              thinkingLevel: ThinkingLevel.MINIMAL,
+            },
           },
-        },
-      ],
-      config: {
-        responseMimeType: "application/json",
-        temperature: 0.1,
-        thinkingConfig: {
-          thinkingLevel: ThinkingLevel.MINIMAL,
-        },
-      },
-    });
+        });
 
-    // 90 second bounded timeout aligned with measured Gemma vision inference latency (~35-40s)
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Request timed out after 90 seconds")), 90000)
-    );
+        // Remaining bounded timeout for this attempt
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Request timed out after 90 seconds")),
+            remainingTime
+          )
+        );
 
-    const response = await Promise.race([callPromise, timeoutPromise]);
+        response = await Promise.race([callPromise, timeoutPromise]);
+        break; // Succeeded
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const lower = msg.toLowerCase();
+        const isTransient =
+          lower.includes("503") ||
+          lower.includes("500") ||
+          lower.includes("unavailable") ||
+          lower.includes("overloaded") ||
+          lower.includes("fetch failed") ||
+          lower.includes("econnreset");
+
+        if (attempt < MAX_RETRIES && isTransient) {
+          console.warn(
+            `[analyzeShopImage] Transient error on attempt ${attempt + 1}: ${msg}. Retrying in 2s...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          continue;
+        }
+        throw err;
+      }
+    }
+
+    if (!response) {
+      throw new Error("No response received from model");
+    }
+
     const rawText = response.text || "";
 
     let parsedJson: unknown;
@@ -225,6 +267,7 @@ Return ONLY valid JSON matching this schema:
     };
   } catch (err: unknown) {
     const rawMessage = err instanceof Error ? err.message : String(err);
+    console.error("[analyzeShopImage] Model error caught:", rawMessage);
     const lowerMsg = rawMessage.toLowerCase();
 
     let errorCode:
@@ -266,10 +309,11 @@ Return ONLY valid JSON matching this schema:
     } else if (
       lowerMsg.includes("unavailable") ||
       lowerMsg.includes("503") ||
-      lowerMsg.includes("500")
+      lowerMsg.includes("500") ||
+      lowerMsg.includes("overloaded")
     ) {
       errorCode = "SERVICE_UNAVAILABLE";
-      userFriendlyError = `Google GenAI service is temporarily unavailable. Please retry shortly.`;
+      userFriendlyError = `Google GenAI service is temporarily unavailable or overloaded. Please retry shortly.`;
     }
 
     return {

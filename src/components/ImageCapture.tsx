@@ -208,7 +208,7 @@ export function ImageCapture({
         >
           <div className="flex items-start gap-2.5">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-            <div className="space-y-1">
+            <div className="space-y-1 flex-1">
               <p className="font-bold">
                 {errorCode === "TIMEOUT"
                   ? "Scan timed out"
@@ -216,6 +216,8 @@ export function ImageCapture({
                   ? "Authentication notice"
                   : errorCode === "QUOTA_ERROR"
                   ? "Service limit notice"
+                  : errorCode === "SERVICE_UNAVAILABLE"
+                  ? "Service notice"
                   : "Scan notice"}
               </p>
               <p className="text-red-800">{error}</p>
@@ -228,6 +230,18 @@ export function ImageCapture({
                 <p className="text-stone-600">
                   Tip: Complex or reflective scenes can take longer. Try a closer photo or retry.
                 </p>
+              )}
+              {image && !isAnalyzing && (
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={onFindItems}
+                    className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-red-300 bg-white px-3.5 py-1.5 text-xs font-bold text-red-900 shadow-xs transition hover:bg-red-50 active:bg-red-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-red-400"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 text-red-700" />
+                    <span>Retry scan</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>
