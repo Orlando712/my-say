@@ -3,7 +3,7 @@ import { z } from "zod";
 import { analyzeShopImage, getGemmaConfig } from "@/lib/server/gemini";
 import { AnalyzeApiResponse } from "@/lib/types";
 
-export const maxDuration = 60; // Allow up to 60s for vision model inference on serverless hosts
+export const maxDuration = 120; // Accommodates the 90-second application timeout on Vercel Fluid Compute
 
 const MAX_BASE64_LENGTH = 7 * 1024 * 1024; // ~5MB file limit in base64
 

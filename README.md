@@ -93,7 +93,15 @@ npm run start
 ### Image Testing & Verification Provenance
 
 - **Synthetic Test Benchmarks**: The in-app "Load Sample Shop Shelf" feature and synthetic test images were created during development for predictable unit latency benchmarking and pipeline verification without requiring physical camera access.
-- **Real-Photo Manual Verification**: Real-world optical photographs of packaged items on retail counters have been manually tested through the live camera and file upload workflow, verifying end-to-end detection, client Canvas cropping, and speech output. Recognition accuracy depends on lighting, packaging, and clarity; it is not guaranteed for arbitrary scenes.
+- **Real-Photo Manual Verification**: The user manually tested and confirmed that the real-photo flow and speech worked end-to-end (confirming product recognition, client-side Canvas cropping, and voice synthesis). Note: Camera capture and file upload were not independently verified as separate paths. Recognition accuracy depends on lighting, packaging, and clarity; it is not claimed to be guaranteed for arbitrary scenes.
+
+### Deployment & Hosting Configuration (Vercel Fluid Compute)
+
+- **Serverless Timeout Accommodation**: Route handlers (`/api/analyze` and `/api/compose`) export `maxDuration = 120`.
+- **Vercel Fluid Compute Required**: Deploying to Vercel requires enabling **Fluid Compute** (in Project Settings &rarr; Functions) to allow execution durations up to 120 seconds. This ensures serverless functions accommodate the application's bounded 90-second timeout ceiling for Gemma vision inference without encountering platform 504 Gateway Timeout errors.
+- **Required Server-Side Environment Variables**:
+  - `GEMINI_API_KEY`: Server-side API key for `@google/genai`.
+  - `GEMMA_MODEL`: `gemma-4-26b-a4b-it`.
 
 ---
 

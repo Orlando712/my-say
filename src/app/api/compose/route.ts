@@ -4,7 +4,7 @@ import { composeMessageWithGemma, getGemmaConfig } from "@/lib/server/gemini";
 import { buildLocalTemplateMessage } from "@/lib/templates";
 import { ComposeApiResponse, ComposeRequestBody } from "@/lib/types";
 
-export const maxDuration = 60; // Allow up to 60s for sentence composition on serverless hosts
+export const maxDuration = 120; // Accommodates serverless function execution on Vercel Fluid Compute
 
 const ComposeRequestSchema = z.object({
   item: z.object({

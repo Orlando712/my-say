@@ -18,7 +18,7 @@ MySay grounds communication directly in a photograph of the immediate scene. A s
 ## 3. Implemented Features
 
 - **Photo Capture & Client Pre-Processing**: Live camera capture and photo upload for real-world packaged items, plus an in-app synthetic shelf loader for instant testing without camera access; client-side image downscaling to prevent excessive upload overhead.
-- **Verification Provenance**: Clearly distinguishes synthetic test images (used for latency benchmarking and layout checks) from successful manual real-photo testing (performed on physical product packaging with live speech output). Recognition accuracy is subject to lighting and package visibility, and is not claimed to be 100% guaranteed.
+- **Verification Provenance**: Clearly distinguishes synthetic test images (used for latency benchmarking and layout checks) from manual testing where the user confirmed that the real-photo flow and speech worked end-to-end. (Camera capture and upload were not independently verified as separate paths; recognition accuracy depends on lighting and packaging, and is not claimed to be 100% guaranteed).
 - **Server-Side Gemma Vision Grounding**: Identifies up to four prominent items from the photograph, returning bounding box coordinates and bilingual names (English + Telugu).
 - **Client-Side Canvas Cropping**: Crops individual products client-side using the HTML5 Canvas API without exposing server API credentials to the browser.
 - **Dynamic Touch Board**: Accessible product cards with high-contrast active states, bilingual text labels, and touch targets exceeding $48\text{px}$.
