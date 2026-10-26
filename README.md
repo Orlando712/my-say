@@ -2,9 +2,9 @@
 
 > **Your surroundings. Your words.**
 
-[![Watch Demo](https://img.shields.io/badge/Demo-Watch%20Video-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=uSxT3vcG7rw)
+[![Watch Demo](https://img.shields.io/badge/Demo-Watch%20Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/2diSeK497kA)
 
-**Video Demonstration:** [https://www.youtube.com/watch?v=uSxT3vcG7rw](https://www.youtube.com/watch?v=uSxT3vcG7rw)
+**Video Demonstration:** [https://youtu.be/2diSeK497kA](https://youtu.be/2diSeK497kA)
 
 ---
 
@@ -167,7 +167,7 @@ npm run start
 - **Visual Recognition Conditions**: Recognition accuracy depends on ambient lighting, angle, and packaging clarity. Reflective surfaces or heavy clutter can produce approximate bounding boxes.
 - **Hosted API Dependency for Recognition**: While sentence composition includes an offline template fallback, visual item detection from photos requires an active network connection to the hosted Gemma Vision API.
 - **Telugu Speech Engine Dependency**: Spoken audio relies on the browser's native `window.speechSynthesis`. Voice quality varies by operating system. If the host platform lacks an installed Telugu voice, the app suppresses foreign-accented speech and alerts the user to show the high-contrast on-screen text to the shopkeeper instead.
-- **Early Prototype**: MySay is an early functional prototype developed for hackathon demonstration. It has not yet undergone formal clinical usability trials with individuals with speech disabilities.
+- **Not Tested with Intended Users**: MySay is an early functional prototype developed for hackathon demonstration; it has not yet been tested with intended users or undergone formal clinical usability trials.
 
 ---
 
