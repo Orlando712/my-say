@@ -512,14 +512,14 @@ export default function Home() {
       />
 
       {/* Main Workspace Layout (55/45 split, max 1200px) */}
-      <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 sm:py-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <main className="mx-auto max-w-[1200px] px-4 py-4 sm:px-6 sm:py-6">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           {/* Left Surface: Your Surroundings (Photo + Items in one cohesive panel) */}
           <section
             aria-label="Your surroundings"
-            className="rounded-3xl border border-[#E2DDD5] bg-white p-5 sm:p-6 shadow-xs space-y-4 lg:col-span-7"
+            className="rounded-3xl border border-[#E2DDD5] bg-white p-4 sm:p-5 shadow-xs space-y-4 lg:col-span-7"
           >
-            <div className="border-b border-[#E2DDD5] pb-3">
+            <div className="border-b border-[#E2DDD5] pb-2.5">
               <h2 className="text-xl font-bold tracking-tight text-[#202923]">
                 Your surroundings
               </h2>
@@ -540,6 +540,7 @@ export default function Home() {
               onCancelAnalysis={handleCancelAnalysis}
               error={analyzeError}
               errorCode={analyzeErrorCode}
+              hasDetectedItems={products.length > 0}
             />
 
             {/* Anchor for returning from "Different item" */}
@@ -560,7 +561,7 @@ export default function Home() {
           <section
             id="communication-panel-anchor"
             aria-label="Your words"
-            className="rounded-3xl border border-[#E2DDD5] bg-white p-5 sm:p-6 shadow-xs lg:col-span-5"
+            className="rounded-3xl border border-[#E2DDD5] bg-white p-4 sm:p-5 shadow-xs lg:col-span-5"
           >
             <WordsPanel
               selectedProduct={selectedProduct}

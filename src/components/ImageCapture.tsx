@@ -13,6 +13,7 @@ interface ImageCaptureProps {
   onCancelAnalysis: () => void;
   error?: string | null;
   errorCode?: string | null;
+  hasDetectedItems?: boolean;
 }
 
 export function ImageCapture({
@@ -26,6 +27,7 @@ export function ImageCapture({
   onCancelAnalysis,
   error,
   errorCode,
+  hasDetectedItems = false,
 }: ImageCaptureProps) {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -114,13 +116,15 @@ export function ImageCapture({
         </div>
       ) : (
         <div className="space-y-3">
-          {/* Compact scene preview (240-280px) preserving aspect ratio */}
-          <div className="relative overflow-hidden rounded-2xl border border-[#E2DDD5] bg-[#FAF9F5]">
+          {/* Compact scene preview (approx 180-200px after detection) preserving aspect ratio */}
+          <div className="relative flex items-center justify-center overflow-hidden rounded-2xl border border-[#E2DDD5] bg-[#FAF9F5]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={image.dataUrl}
               alt="Store counter or shelf display"
-              className="max-h-[260px] w-full object-contain mx-auto"
+              className={`${
+                hasDetectedItems ? "max-h-[185px]" : "max-h-[250px]"
+              } w-full object-contain mx-auto transition-all`}
             />
             {isAnalyzing && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#202923]/75 p-4 text-center text-white backdrop-blur-xs">
@@ -144,22 +148,39 @@ export function ImageCapture({
           </div>
 
           {/* Scanning and photo action buttons */}
-          <div className="flex flex-col gap-2.5 sm:flex-row">
+          <div className="flex flex-col gap-2 sm:flex-row">
             {!isAnalyzing ? (
               <>
-                <button
-                  type="button"
-                  onClick={onFindItems}
-                  className="flex min-h-[56px] flex-1 items-center justify-center gap-2.5 rounded-xl bg-[#174C43] px-6 py-3 text-base font-bold text-white shadow-xs transition hover:bg-[#123C35] active:bg-[#0E2D27] focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-[#174C43]"
-                >
-                  <Sparkles className="h-5 w-5" />
-                  <span>Scan photo</span>
-                </button>
+                {hasDetectedItems ? (
+                  /* Secondary outlined action labelled "Scan again" after successful detection */
+                  <button
+                    type="button"
+                    onClick={onFindItems}
+                    className="flex min-h-[48px] sm:min-h-[50px] flex-1 items-center justify-center gap-2 rounded-xl border-2 border-[#E2DDD5] bg-white px-4 py-2.5 text-sm font-bold text-[#202923] transition hover:border-[#174C43] hover:text-[#174C43] hover:bg-[#FAF9F5] active:bg-[#F2EFE9] focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-[#174C43]"
+                  >
+                    <Sparkles className="h-4 w-4 text-[#174C43]" />
+                    <span>Scan again</span>
+                  </button>
+                ) : (
+                  /* Prominent primary action before first scan */
+                  <button
+                    type="button"
+                    onClick={onFindItems}
+                    className="flex min-h-[56px] flex-1 items-center justify-center gap-2.5 rounded-xl bg-[#174C43] px-6 py-3 text-base font-bold text-white shadow-xs transition hover:bg-[#123C35] active:bg-[#0E2D27] focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-[#174C43]"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    <span>Scan photo</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
                   onClick={onClearImage}
-                  className="flex min-h-[56px] items-center justify-center gap-2 rounded-xl border-2 border-[#E2DDD5] bg-white px-4 py-3 text-sm font-semibold text-[#58625B] transition hover:text-[#202923] hover:border-[#C4BCB0] hover:bg-[#FAF9F5] focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-[#174C43]"
+                  className={`flex items-center justify-center gap-2 rounded-xl border-2 border-[#E2DDD5] bg-white px-4 py-2.5 text-sm font-semibold text-[#58625B] transition hover:text-[#202923] hover:border-[#C4BCB0] hover:bg-[#FAF9F5] focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-[#174C43] ${
+                    hasDetectedItems
+                      ? "min-h-[48px] sm:min-h-[50px]"
+                      : "min-h-[56px]"
+                  }`}
                 >
                   <RotateCcw className="h-4 w-4" />
                   <span>Change photo</span>
@@ -169,7 +190,7 @@ export function ImageCapture({
               <button
                 type="button"
                 onClick={onCancelAnalysis}
-                className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-red-50 px-6 py-3 text-sm font-bold text-red-900 transition hover:bg-red-100 focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-red-400"
+                className="flex min-h-[52px] sm:min-h-[56px] flex-1 items-center justify-center gap-2 rounded-xl border-2 border-red-200 bg-red-50 px-6 py-3 text-sm font-bold text-red-900 transition hover:bg-red-100 focus-visible:outline-hidden focus-visible:ring-3 focus-visible:ring-red-400"
               >
                 <XCircle className="h-5 w-5 text-red-700" />
                 <span>Cancel scan ({elapsedSeconds}s elapsed)</span>
