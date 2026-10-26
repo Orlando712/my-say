@@ -9,7 +9,7 @@ This document outlines a concise, realistic 90-second demonstration walk-through
 ### [00:00 – 00:15] Problem Introduction
 - **Visual**: Show the MySay app open on mobile or desktop at `http://localhost:3001`.
 - **Narration**:
-  > *"For people who find speaking difficult—due to aphasia, speech apraxia, or disability—a simple trip to the local store can be stressful. Standard AAC boards don't have the specific items on a neighborhood counter, typing on a phone is slow, and pointing across glass displays often leads to mix-ups. MySay turns a real photo of the store counter into an instant, tactile speech board."*
+  > *"For people who find speaking difficult—due to aphasia, speech apraxia, or disability—a simple trip to the local store can involve communication hurdles. Pre-configured AAC boards often lack the specific items on a neighborhood shelf, typing on a phone can be slow, and pointing across glass displays can lead to misunderstandings. MySay turns a real photo of the store counter into an instant, tactile speech board."*
 
 ### [00:15 – 00:30] Scene Capture & Grounding
 - **Visual**: Click "Upload Photo" (or "Take a Photo" / "Load Sample Shop Shelf"). Select a real counter display photograph containing distinct packaged goods (e.g. snack boxes, drink cans, or grocery packages). Press "Find items".

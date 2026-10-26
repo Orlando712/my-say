@@ -6,10 +6,10 @@
 
 ## 1. Problem Statement
 
-People who find speaking difficult (including non-speaking individuals, people with aphasia, speech apraxia, dysarthria, or traumatic brain injury) face acute communication barriers during everyday neighborhood transactions:
-- **Pre-configured AAC (Augmentative and Alternative Communication) boards** rarely have the exact brand, package variation, or local item found on a specific neighborhood corner store counter.
-- **Typing out descriptions** on a phone keyboard is slow, tiring, and frequently causes tension or rushed misunderstandings at a busy checkout counter.
-- **Gesturing and pointing** across a counter or glass display often leads to incorrect items being grabbed by the shopkeeper.
+People who find speaking difficult (including non-speaking individuals, people with aphasia, speech apraxia, dysarthria, or traumatic brain injury) can encounter communication friction during everyday neighborhood transactions:
+- **Pre-configured AAC boards** often do not include the specific brand, package variation, or local item found on a particular neighborhood counter.
+- **Typing out descriptions** on a phone keyboard during a fast-moving checkout interaction can be slow or tiring.
+- **Gesturing and pointing** across a counter or glass display can be ambiguous.
 
 **MySay** addresses this dynamic, scene-specific communication problem by grounding communication directly in the visual scene right in front of the customer.
 
@@ -23,7 +23,7 @@ MySay implements a complete, five-step interaction designed for rapid, error-tol
 2. **Visual Vocabulary Extraction**: The app sends the photo to the server, where Gemma Vision extracts up to four clearly visible products with coordinates, returning normalized bounding boxes and bilingual labels (English and Telugu). The browser crops the products client-side using the native HTML5 Canvas API.
 3. **Intent & Quantity Selection**: The user taps a visible product card, chooses an intention (*"Ask the price"* or *"I want this"*), and picks a quantity (1, 2, or 3). The active choice is immediately summarized with high-contrast visual cues.
 4. **Message Review & Deliberate Speech**:
-   - The user reviews the composed natural sentence in large, editable high-contrast text.
+   - The user reviews the composed natural sentence in large, editable high-contrast text. If the composition API is unreachable, local deterministic templates provide structured fallback phrases. (Note: Fallback applies strictly to sentence composition; visual product recognition from photos still requires the hosted Gemma Vision API.)
    - A visual pointing card highlights the selected item crop so the user can physically point to it.
    - **Nothing speaks automatically**: Speech is triggered strictly when the user explicitly presses **Speak Message**.
    - **Stop** and **Repeat** buttons are always accessible.
@@ -116,17 +116,18 @@ npm run start
 
 This project is an early hackathon functional prototype. Transparent limitations include:
 - **Recognition & Crop Accuracy**: Cluttered backgrounds, reflective packaging, extreme angles, or poor lighting can cause Gemma to mislabel items or produce approximate bounding boxes that clip parts of a product.
+- **Hosted API Dependency for Recognition**: While message composition includes an offline deterministic template fallback if the model API is unavailable, visual product recognition from photos requires an active network connection to the hosted Gemma Vision API.
 - **Device-Dependent Speech Synthesis**: Speech synthesis relies on the local browser's Web Speech API. Voices can sound robotic or mechanical depending on the OS. On platforms lacking a native Telugu voice, the app displays a clear warning banner and relies on high-contrast screen text rather than falling back to an unintelligible English accent.
 - **Latency**: Vision processing over cellular connections may take 5–15 seconds depending on network conditions. A visible elapsed-time indicator and Cancel button keep the user informed.
-- **No Direct User Testing Yet**: While grounded in established AAC design principles (large touch targets, confirmation before speech, high contrast), this prototype has not yet undergone formal usability studies with individuals who have speech disabilities.
+- **No Direct User Testing Yet**: While designed with accessibility considerations in mind (large touch targets, confirmation before speech, high contrast), this prototype has not yet undergone formal usability studies or clinical trials with individuals who have speech disabilities.
 
 ---
 
 ## 7. Inspiration & Origin
 
-MySay was inspired by the **3VA** (Visual Voice Vocabulary Architecture) project's pictogram communication approach for augmentative communication. 
+MySay was inspired by the [3VA](https://github.com/libreearth/eva_voice_release) project's pictogram communication approach for augmentative communication. 
 
-While 3VA uses pre-authored pictogram symbol grids, MySay develops an original, photo-grounded paradigm: dynamically generating a temporary, custom communication board directly from a live photograph of the user's immediate physical environment, combined with explicit confirmation and counter-specific misunderstanding correction flows.
+While 3VA focuses on pictogram symbol grids, MySay explores a photo-grounded paradigm: dynamically generating a temporary, custom communication board directly from a live photograph of the user's immediate physical environment, combined with explicit confirmation and counter-specific misunderstanding correction flows.
 
 ---
 
@@ -136,4 +137,4 @@ While 3VA uses pre-authored pictogram symbol grids, MySay develops an original, 
 - **Tailwind CSS**: Licensed under the MIT License &copy; Tailwind Labs, Inc.
 - **Lucide Icons**: Licensed under the ISC License &copy; Lucide Contributors.
 - **Google Gen AI SDK (`@google/genai`)**: Licensed under the Apache-2.0 License &copy; Google LLC.
-- **Original MySay Application Code**: Licensed under the MIT License (see [LICENSE](file:///Users/chaitra/My%20say/LICENSE)).
+- **Original MySay Application Code**: Licensed under the MIT License (see [LICENSE](./LICENSE)).

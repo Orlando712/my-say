@@ -9,7 +9,7 @@ This document describes the architectural pattern for converting real-world envi
 
 ## 1. Overview & Core Philosophy
 
-Traditional Augmentative and Alternative Communication (AAC) systems rely on pre-configured symbol sets or tedious manual typing. The **scene-to-communication-board** pattern dynamically turns the user's immediate visual environment into an interactive, tactile communication board.
+Pre-configured AAC symbol sets and text-entry boards can be challenging to use in open-ended retail settings where inventory changes. The **scene-to-communication-board** pattern dynamically turns a photo of the user's immediate visual environment into an interactive, tactile communication board.
 
 Crucially, because automated visual recognition and speech synthesis can introduce errors or unwanted noise, this pattern enforces **explicit user confirmation before audio output** and provides **first-class misunderstanding correction controls**.
 
@@ -24,7 +24,7 @@ Crucially, because automated visual recognition and speech synthesis can introdu
 [Vision Grounding Model]
         │
         ├─► Detects up to 4 prominent items
-        ├─► Extracts normalized bounding box coordinates [ymin, xmin, ymax, xmax]
+        ├─► Extracts normalized bounding box coordinates {x, y, width, height} (0–1)
         └─► Generates bilingual labels (Local language + English)
         │
         ▼ (Client-Side Canvas Crop)
@@ -38,7 +38,8 @@ Crucially, because automated visual recognition and speech synthesis can introdu
 [Contextual Sentence Composer]
         │
         ├─► Combines selected item, intention, quantity, and correction history
-        ├─► Fallback: Deterministic grammatical template if model unavailable
+        ├─► Fallback: Deterministic local phrase template if composer unavailable
+        │    (Note: Fallback applies to composition only; recognition requires hosted API)
         └─► Previews editable text in large viewport (Zero auto-speech)
         │
         ▼ (Explicit Action: "Speak Message")
@@ -59,16 +60,16 @@ Crucially, because automated visual recognition and speech synthesis can introdu
 ## 3. Inputs & Outputs
 
 ### Inputs
-1. **Scene Image**: Base64 or binary image buffer (JPEG/PNG/WebP, resized to $\le 1024\text{px}$ client-side to minimize transport latency).
+1. **Scene Image**: Base64 or binary image buffer (JPEG/PNG/WebP, resized to $\le 1280\text{px}$ client-side to minimize transport latency).
 2. **Target Language**: ISO language code (e.g., `en`, `te`).
 3. **User Intent**: Structured choice (`ask_price` | `want_this`).
 4. **Quantity**: Integer selection (`1` | `2` | `3`).
 5. **Correction Context** (Optional): Previously selected item metadata when user corrects a shopkeeper misunderstanding.
 
 ### Outputs
-1. **Detected Items**: Array of items with unique ID, normalized bounding boxes, primary label, and bilingual translation.
+1. **Detected Items**: Array of items with unique ID, normalized bounding boxes ({x, y, width, height}, normalized 0–1), primary label, and bilingual translation.
 2. **Visual Crops**: Client-extracted image crops for tactile pointing.
-3. **Spoken Phrase**: Grammatically natural, polite sentence in the target language.
+3. **Spoken Phrase**: Natural, polite sentence or template phrase in the target language.
 4. **Voice Audio**: Client-synthesized speech audio executed via local browser speech engines.
 
 ---
@@ -86,7 +87,7 @@ Crucially, because automated visual recognition and speech synthesis can introdu
 | Failure Scenario | Mitigation Strategy |
 | :--- | :--- |
 | **Model Request Timeout** | Bounded timeouts (e.g., 90s server limit), real-time elapsed second indicator, and user-facing "Cancel scan" button. No automatic infinite retry loops. |
-| **Model Service Failure / Missing Key** | Deterministic local template engine generates grammatically correct phrases in English and Telugu without blocking the user. |
+| **Model Service Failure / Missing Key** | Deterministic local template engine generates structured fallback phrases in English and Telugu for message composition without blocking the user. (Note: Fallback applies strictly to message composition; visual product recognition from photos still requires the hosted API.) |
 | **Bounding Box Out of Bounds** | Client canvas crop verifies bounds; if crop fails, the UI gracefully falls back to the full scene image with an indicator tag. |
 | **Missing Browser Voice (e.g. Telugu)** | Detects lack of local engine support and suppresses garbled foreign accents. Displays high-contrast text and notifies user that text is visible for counter staff to read. |
-| **Cluttered or Ambiguous Scene** | Detection prompt strictly bounds output to 4 clearly visible items with confidence gating, avoiding unmanageable card flooding. |
+| **Cluttered or Ambiguous Scene** | Detection prompt strictly bounds output to up to 4 prominent items from the scene, avoiding unmanageable card flooding. |
